@@ -1,4 +1,3 @@
-cat > tests/calculations_test.py <<'EOF'
 # System Modules
 import sys
 import os
