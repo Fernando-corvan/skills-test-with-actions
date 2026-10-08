@@ -1,0 +1,22 @@
+{
+  "mechanism_id": "HS10_READY_TO_RESUME",
+  "source_owner": "Nexus/runtime",
+  "test_target": "Fernando-corvan/skills-test-with-actions",
+  "baseline_in": "c2b716207735a1d34f030c893729468ff59b1983",
+  "trigger": "mission intentionally interrupted after persisting checkpoint",
+  "input_packet": {
+    "current_position": "Branch created from main; no main changes.",
+    "unresolved_question": "Can a later GitHub operation resume correctly from persisted external state?",
+    "next_action": "Create a receipt file using this checkpoint as the only operational handoff.",
+    "return_condition": "Checkpoint can be read back from the branch and its next_action can be executed without touching main."
+  },
+  "operation": "Externalize pending execution state before resuming.",
+  "forbidden_delta": [
+    "Do not modify main.",
+    "Do not modify application/test code.",
+    "Do not merge during the probe."
+  ],
+  "success_signal": "Checkpoint readback succeeds and next_action is completed on the same branch.",
+  "failure_signal": "Checkpoint cannot be read or continuation requires reconstructing hidden context.",
+  "rollback": "Delete branch/close PR if desired; main remains unchanged."
+}
