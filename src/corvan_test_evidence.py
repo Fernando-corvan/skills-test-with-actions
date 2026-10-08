@@ -4,7 +4,7 @@ This module classifies what a test demonstrates. It does not certify Casa runtim
 canonical ontology, or CORVAN as a whole.
 """
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Optional
 
 
 class TestEvidenceBlocked(ValueError):
@@ -46,8 +46,8 @@ def _items(values, name, minimum=0):
 class EvidenceReceipt:
     test_id: str
     test_class: str
-    target_function: str | None
-    mechanism_under_test: str | None
+    target_function: Optional[str]
+    mechanism_under_test: Optional[str]
     owner: str
     dependencies: tuple
     preconditions: tuple
@@ -61,10 +61,10 @@ class EvidenceReceipt:
     scope_claim: str
     does_not_prove: tuple
     interface_endpoints: tuple = ()
-    perturbation: str | None = None
-    preserved_invariant: str | None = None
+    perturbation: Optional[str] = None
+    preserved_invariant: Optional[str] = None
     system_components: tuple = ()
-    control_target: str | None = None
+    control_target: Optional[str] = None
 
 
 def classify(payload):
