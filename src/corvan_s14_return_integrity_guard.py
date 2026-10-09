@@ -53,7 +53,9 @@ def evaluate_return_integrity(packet, evidence, expected_sequence=None):
     seq = packet.get("event_seq")
     if type(seq) is not int or seq < 1:
         return _hold("HOLD_PACKET_SCHEMA")
-    if type(expected_sequence) is not int and expected_sequence is not None:
+    if expected_sequence is None:
+        return _hold("HOLD_SEQUENCE_BASELINE")
+    if type(expected_sequence) is not int:
         return _hold("HOLD_EXPECTED_SEQUENCE_SCHEMA")
     if isinstance(expected_sequence, int) and expected_sequence < 1:
         return _hold("HOLD_EXPECTED_SEQUENCE_SCHEMA")
@@ -69,7 +71,7 @@ def evaluate_return_integrity(packet, evidence, expected_sequence=None):
         return _hold("HOLD_OWNER_RECEIPTS")
     if any(c.get(ck) != packet[pk] for ck, pk in CONTRACT_MATCH):
         return _hold("HOLD_CONTRACTS_BINDING")
-    if c.get("accepted") is not True:
+    if c.get("accepted") is not True or c.get("readback_verified") is not True:
         return _hold("HOLD_CONTRACTS_NOT_ACCEPTED")
     if c.get("duplicate") is True:
         return _hold("HOLD_DUPLICATE_REVIEW")
