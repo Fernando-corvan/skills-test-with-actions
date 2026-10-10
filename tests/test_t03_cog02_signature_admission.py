@@ -192,3 +192,59 @@ def test_registry_and_l0_consistency_cannot_replace_authenticated_readback(d):
     r = run(d)
     assert r["status"] == "LAB_ROUTE_REQUEST_ONLY"
     assert r["evidence_class"] == "CONTROLLED_FIXTURE_SCHEMA_CONSISTENCY_NOT_AUTHENTICATED"
+
+
+# Methods CORVAN P01/P02/BLOCK03/P04: every material T03 admission
+# needs a fresh 03+08 source revision snapshot before any 701/L0 admission.
+def test_missing_observed_snapshot_blocks_even_if_owner_fixtures_look_valid(d):
+    d.pop("observed_revisions")
+    r = run(d)
+    assert r["status"] == "HOLD_SOURCE_SNAPSHOT_REQUIRED"
+    assert r["step"] == "SOURCE"
+    assert r["route_dispatched"] is False
+    assert r["authorized_execution"] is False
+
+
+@pytest.mark.parametrize("snapshot", [
+    None, {},
+    {"03": "rev-03"},
+    {"03": "rev-03", "08": ""},
+    {"03": "rev-03", "08": " "},
+    {"03": "rev-03", "08": True},
+    {"03": "rev-03", "08": 17},
+])
+def test_partial_or_invalid_revision_observation_never_passes(d, snapshot):
+    d["observed_revisions"] = snapshot
+    assert run(d)["status"] == "HOLD_SOURCE_SNAPSHOT_REQUIRED"
+
+
+@pytest.mark.parametrize("snapshot", ["rev-08", [], False, 12])
+def test_wrong_observation_container_is_schema_hold(d, snapshot):
+    d["observed_revisions"] = snapshot
+    assert run(d)["status"] == "HOLD_SOURCE_SCHEMA"
+
+
+def test_old_08_pin_cannot_be_reused_as_current_with_plausible_701_l0(d):
+    d["source_docs"]["08"]["revision"] = "rev-08-previous"
+    # Real source readback remains at rev-08; source gate runs before 701.
+    r = run(d)
+    assert r["status"] == "HOLD_SOURCE_REVISION"
+    assert "08_REVISION_DRIFT" in r["missing"]
+    assert r["step"] == "SOURCE"
+    assert r["native_execution"] is False
+
+
+def test_current_03_08_snapshot_still_needs_two_real_701_cards(d):
+    d["registry_cards"] = {}
+    r = run(d)
+    assert r["status"] == "HOLD_701_QOP_AOP_SIGNATURE"
+    assert sorted(r["missing"]) == ["03_701_CARD", "08_701_CARD"]
+
+
+def test_source_revision_change_invalidates_only_affected_t03_edge(d):
+    d["observed_revisions"]["08"] = "rev-08-next"
+    r = run(d)
+    assert r["status"] == "HOLD_SOURCE_REVISION"
+    assert r["missing"] == ["08_REVISION_DRIFT"]
+    assert r["source_revisions"]["03"] == "rev-03"
+    assert r["route_dispatched"] is False
