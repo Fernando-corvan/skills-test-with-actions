@@ -66,15 +66,28 @@ def admit_t03(
     if missing:
         return _hold("HOLD_SOURCE_BINDING", "SOURCE", missing, source_docs,
                      mission_id=mission, correlation_id=correlation)
-    if observed_revisions is not None:
-        if not isinstance(observed_revisions, dict):
-            return _hold("HOLD_SOURCE_SCHEMA", "SOURCE", ["CURRENT_REVISION_SNAPSHOT"], source_docs,
-                         mission_id=mission, correlation_id=correlation)
-        wrong = [k + "_REVISION_DRIFT" for k in SOURCES
-                 if source_docs[k]["revision"] != observed_revisions.get(k)]
-        if wrong:
-            return _hold("HOLD_SOURCE_REVISION", "SOURCE", wrong, source_docs,
-                         mission_id=mission, correlation_id=correlation)
+    # A revision pin supplied by the candidate is not evidence of currentness.
+    # Require an independently retrieved 03+08 snapshot on EVERY T03 admission.
+    # This laboratory still cannot authenticate the caller of this snapshot.
+    if observed_revisions is None:
+        return _hold("HOLD_SOURCE_SNAPSHOT_REQUIRED", "SOURCE",
+                     ["CURRENT_REVISION_SNAPSHOT"], source_docs,
+                     mission_id=mission, correlation_id=correlation)
+    if not isinstance(observed_revisions, dict):
+        return _hold("HOLD_SOURCE_SCHEMA", "SOURCE",
+                     ["CURRENT_REVISION_SNAPSHOT"], source_docs,
+                     mission_id=mission, correlation_id=correlation)
+    missing_snapshot = [k + "_OBSERVED_REVISION" for k in SOURCES
+                        if not _txt(observed_revisions.get(k))]
+    if missing_snapshot:
+        return _hold("HOLD_SOURCE_SNAPSHOT_REQUIRED", "SOURCE",
+                     missing_snapshot, source_docs,
+                     mission_id=mission, correlation_id=correlation)
+    wrong = [k + "_REVISION_DRIFT" for k in SOURCES
+             if source_docs[k]["revision"] != observed_revisions[k]]
+    if wrong:
+        return _hold("HOLD_SOURCE_REVISION", "SOURCE", wrong, source_docs,
+                     mission_id=mission, correlation_id=correlation)
 
     if not isinstance(candidate, dict) or candidate.get("status") != "CANDIDATE_ONLY":
         return _hold("HOLD_UPSTREAM", "SOURCE", ["COG01_CANDIDATE"],
