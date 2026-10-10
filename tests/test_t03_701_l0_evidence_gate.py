@@ -16,8 +16,7 @@ from corvan_t03_701_l0_evidence_gate import (
 )
 
 R03 = "AHj4eMTc3iWPurGhPbEeuPMswSen83DKRq_O565-AvOTK-tZSTnKqhc61hOSL8jlItCmA6eYygyCvbX5893BJMf726UHutKEf3gAHTrMamQ"
-R08 = "ANLCKQkwLxOm1qdxrYv9nTRKGKsnG74NAOrYPXVD2u7peJE5zBLOW4HxwJLjfxtzJeB-PsH-jwJHXtUOYn14VbxQo-2BbY2Y1crbG-GV8Dj8"
-# 08 revision exact sourced from Drive below; tests never infer currentness automatically.
+# 08 revision exact sourced from Drive; tests never infer currentness automatically.
 R08 = "ANLCKQkwLxOm1qdxrYv9nTRKGKsnG74NAOrYPXVD2u7peJE5zBLOW4HxwJLjfxtzJeB-PsH-jwJHXtUOYn14VbxQo-2BbY2Y1crbG-V8Dj8"
 R701 = "ANLCKQm7hENC4zpox2ZHGnMsXG99dIXRvT0Tg0f_lLYPU65BSu6p2vPfY043BaM-n2l4ZVMd2hZNvjnl5ZgpRCRAoOskNYqpdJgMiujfIl8"
 RL0 = "AHj4eMS1SOOil11q0IdLBVs3xTtNuAW70pC17xQzC4EguCfJzoiFbM014Fc5Vcr7F0F7KUx8jboiBBD2A5pwu6nOtFbOUV5xqPlVl9wLl4A"
@@ -85,12 +84,12 @@ def test_hypothetical_complete_owner_inputs_make_lab_request_not_route():
     assert "VERIFY_701_CARDS_AGAINST_LIVE_DOC" in x["verification_next"]
 
 
-@pytest.mark.parametrize("bad", [None, [], "M", 5, ""])
+@pytest.mark.parametrize("bad", [None, [], {}, 5, ""])
 def test_invalid_mission_identity_blocks(bad):
     assert check(fixture(), mission_id=bad)["status"] == "HOLD_MISSION"
 
 
-@pytest.mark.parametrize("bad", [None, [], "C", 5, ""])
+@pytest.mark.parametrize("bad", [None, [], {}, 5, ""])
 def test_invalid_correlation_identity_blocks(bad):
     assert check(fixture(), correlation_id=bad)["status"] == "HOLD_MISSION"
 
