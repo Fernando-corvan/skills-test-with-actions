@@ -172,6 +172,6 @@ def test_no_input_mutation():
 
 
 def test_empty_sources_cannot_be_promoted_by_verified_flag():
-    v = fixture()
-    v[0] = {}
-    assert check(v)["status"] == "HOLD_SOURCE_LOCK"
+    sources, registry, l0 = fixture()
+    sources.clear()
+    assert check((sources, registry, l0))["status"] == "HOLD_SOURCE_LOCK"
